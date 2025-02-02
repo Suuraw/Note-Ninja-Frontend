@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef } from "react";
 import { Send, Mic, X } from "lucide-react";
-import { audioHandler,handlePrompt } from "../services/transcriptHandler";
+import { audioHandler, handlePrompt } from "../services/transcriptHandler";
 
 export default function ChatInput({ onResponse }) {
   const [prompt, setPrompt] = useState("");
@@ -15,34 +15,21 @@ export default function ChatInput({ onResponse }) {
 
     const isGoogleDriveLink = prompt.startsWith("https://drive.google.com");
 
-    if (audioFile) {
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        const googleDriveLink = await uploadToGoogleDrive(audioFile);
-        inputData = {
-          input_type: "audio",
-          input_data: googleDriveLink,
-        };
-        audioHandler(inputData);
-        response = "Audio submission received."; // Example response
-        onResponse(response); // Pass the response to the parent
-      };
-      reader.readAsDataURL(audioFile);
-    } else if (isGoogleDriveLink) {
+    if (isGoogleDriveLink) {
       inputData = {
         input_type: "audio",
         input_data: prompt,
       };
-      const response=await audioHandler(inputData);
-      // response = "Google Drive link submitted."; // Example response
-      onResponse(response); // Pass the response to the parent
+      
+      onResponse(response);
     } else {
       inputData = {
         input_type: "text",
         input_data: prompt,
       };
-      audioHandler(inputData);
-      response = "Text message received."; // Example response
+      console.log(inputData);
+      const response=await audioHandler(inputData);
+      console.log("response hit");
       onResponse(response); // Pass the response to the parent
     }
 

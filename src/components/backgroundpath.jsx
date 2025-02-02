@@ -72,8 +72,12 @@ function ResponseDisplay({ response }) {
   }, [response]);
   if (response === "") return;
   return (
-    <div className="bg-white font-semibold text-black rounded-lg p-4 mt-4 w-full max-w-3xl mx-auto overflow-auto max-h-[60vh]">
-      <p>{displayedText}</p>
+    <div className="bg-white font-semibold text-black rounded-lg p-4 mt-4 w-full max-w-[82%] mx-auto overflow-auto max-h-[60vh]">
+      <ul>
+        {response.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
     </div>
   );
 }
