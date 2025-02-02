@@ -1,16 +1,51 @@
-"use client"
-
+"use client";
 import { useState, useRef } from "react";
 import { Send, Mic, X } from "lucide-react";
+import { audioHandler,handlePrompt } from "../services/transcriptHandler";
 
-export default function ChatInput() {
+export default function ChatInput({ onResponse }) {
   const [prompt, setPrompt] = useState("");
   const [audioFile, setAudioFile] = useState(null);
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleSubmit = () => {
-    console.log({ prompt, audioFile });
+  const handleSubmit = async () => {
+    let inputData = null;
+    let response = "";
+
+    const isGoogleDriveLink = prompt.startsWith("https://drive.google.com");
+
+    if (audioFile) {
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const googleDriveLink = await uploadToGoogleDrive(audioFile);
+        inputData = {
+          input_type: "audio",
+          input_data: googleDriveLink,
+        };
+        audioHandler(inputData);
+        response = "Audio submission received."; // Example response
+        onResponse(response); // Pass the response to the parent
+      };
+      reader.readAsDataURL(audioFile);
+    } else if (isGoogleDriveLink) {
+      inputData = {
+        input_type: "audio",
+        input_data: prompt,
+      };
+      const response=await audioHandler(inputData);
+      // response = "Google Drive link submitted."; // Example response
+      onResponse(response); // Pass the response to the parent
+    } else {
+      inputData = {
+        input_type: "text",
+        input_data: prompt,
+      };
+      audioHandler(inputData);
+      response = "Text message received."; // Example response
+      onResponse(response); // Pass the response to the parent
+    }
+
     setPrompt("");
     setAudioFile(null);
   };
@@ -41,8 +76,10 @@ export default function ChatInput() {
   };
 
   return (
-    <div className="w-full max-w-3xl bg-black-900/60 backdrop-blur-sm rounded-lg p-4 border border-black 
-                    sm:ml-0 md:ml-14 mx-auto">
+    <div
+      className="w-full max-w-3xl bg-black-900/60 backdrop-blur-sm rounded-lg p-4 border border-black
+                 sm:ml-0 md:ml-14 mx-auto"
+    >
       <div
         className={`relative ${isDragging ? "ring-2 ring-primary" : ""}`}
         onDragOver={handleDragOver}
@@ -53,8 +90,8 @@ export default function ChatInput() {
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="Type a message or drop an audio file..."
-          className="w-full px-4 py-3 rounded-lg bg-white text-black placeholder-black 
-                     focus:outline-none focus:ring-2 focus:ring-primary resize-none 
+          className="w-full px-4 py-3 rounded-lg bg-white text-black placeholder-black
+                     focus:outline-none focus:ring-2 focus:ring-primary resize-none
                      h-20 sm:h-24 pr-20 md:pr-24"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -67,7 +104,10 @@ export default function ChatInput() {
           {audioFile ? (
             <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-gray-700 text-gray-200 max-w-[120px] sm:max-w-[150px]">
               <span className="text-xs truncate">{audioFile.name}</span>
-              <button onClick={() => setAudioFile(null)} className="p-1 hover:bg-gray-600 rounded">
+              <button
+                onClick={() => setAudioFile(null)}
+                className="p-1 hover:bg-gray-600 rounded"
+              >
                 <X size={14} />
               </button>
             </div>
@@ -79,11 +119,20 @@ export default function ChatInput() {
               <Mic size={20} className="text-black-300" />
             </button>
           )}
-          <button onClick={handleSubmit} className="p-2 rounded-lg transition-colors">
+          <button
+            onClick={handleSubmit}
+            className="p-2 rounded-lg transition-colors"
+          >
             <Send size={20} className="text-black-300" />
           </button>
         </div>
-        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*" className="hidden" />
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept="audio/*"
+          className="hidden"
+        />
       </div>
     </div>
   );

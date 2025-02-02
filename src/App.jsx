@@ -9,9 +9,12 @@ function App() {
   return (
     <>
     <FloatingNav/>
+    <div className="mt-[10%]">
+
       <BackgroundPaths 
         title="Your Custom Title"  // Optional prop
       />
+    </div>
       {/* <ChatInput/> */}
       
       {/* Your existing content can stay here */}
