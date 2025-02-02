@@ -1,26 +1,31 @@
 "use client";
 import { useState, useRef } from "react";
 import { Send, Mic, X } from "lucide-react";
-import { audioHandler, handlePrompt } from "../services/transcriptHandler";
+import { audioHandler } from "../services/transcriptHandler";
 
-export default function ChatInput({ onResponse }) {
+export default function ChatInput({ onResponse, updateLoading,setInputType }) {
   const [prompt, setPrompt] = useState("");
   const [audioFile, setAudioFile] = useState(null);
+  // const [isLoading,updateLoading]=useState(false);
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleSubmit = async () => {
     let inputData = null;
-    let response = "";
+    // let response = "";
 
     const isGoogleDriveLink = prompt.startsWith("https://drive.google.com");
-
+    updateLoading(true);
     if (isGoogleDriveLink) {
+      
       inputData = {
         input_type: "audio",
         input_data: prompt,
       };
-      
+      console.log(inputData);
+      setInputType(inputData.input_type);
+      setPrompt("");
+      const response = await audioHandler(inputData);
       onResponse(response);
     } else {
       inputData = {
@@ -28,12 +33,13 @@ export default function ChatInput({ onResponse }) {
         input_data: prompt,
       };
       console.log(inputData);
-      const response=await audioHandler(inputData);
+      setInputType(inputData.input_type);
+      setPrompt("");
+      const response = await audioHandler(inputData);
       console.log("response hit");
-      onResponse(response); // Pass the response to the parent
+      onResponse(response);
     }
-
-    setPrompt("");
+    localStorage.setItem("inputType",inputData.input_type);
     setAudioFile(null);
   };
 
@@ -76,7 +82,7 @@ export default function ChatInput({ onResponse }) {
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Type a message or drop an audio file..."
+          placeholder="Type a message or drop an google drive link which has the audio file..."
           className="w-full px-4 py-3 rounded-lg bg-white text-black placeholder-black
                      focus:outline-none focus:ring-2 focus:ring-primary resize-none
                      h-20 sm:h-24 pr-20 md:pr-24"

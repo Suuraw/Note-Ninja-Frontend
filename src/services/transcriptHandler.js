@@ -12,15 +12,7 @@ export const audioHandler=async(inputData)=>{
     console.log(JSON.stringify(response.data.Response));
     return response.data.Response;
   } catch (error) {
-    return "error text"
+    console.log("Error:",error);
    
   }
-}
-
-export const handlePrompt=async(inputText)=>{
-    try {
-        console.log("SERVER HIT");
-    } catch (error) {
-        
-    }
 }

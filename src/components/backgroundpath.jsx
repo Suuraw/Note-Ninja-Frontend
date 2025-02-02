@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import ChatInput from "./input";
 import { useEffect } from "react";
-
+import { Loader } from "./Loader";
 function FloatingPaths({ position = 4 }) {
   const paths = Array.from({ length: 36 }, (_, i) => ({
     id: i,
@@ -50,9 +50,9 @@ function FloatingPaths({ position = 4 }) {
   );
 }
 
-function ResponseDisplay({ response }) {
+function ResponseDisplay({ response, isLoading, setIsLoading,inputType,setInputType }) {
   const [displayedText, setDisplayedText] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  // const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (response === "") return;
@@ -67,10 +67,11 @@ function ResponseDisplay({ response }) {
         setIsLoading(false);
       }
     }, 50); // Adjust the delay (in ms) to control the speed of text appearing
-
+    console.log(displayedText);
     return () => clearInterval(interval);
   }, [response]);
-  if (response === "") return;
+  if (isLoading && response === "") return <Loader inputType={inputType} setInputType={setInputType}/>;
+  else if (response === "") return;
   return (
     <div className="bg-white font-semibold text-black rounded-lg p-4 mt-4 w-full max-w-[82%] mx-auto overflow-auto max-h-[60vh]">
       <ul>
@@ -84,7 +85,8 @@ function ResponseDisplay({ response }) {
 
 export default function BackgroundPaths({ title = "Background Paths" }) {
   const [responseText, setResponseText] = useState("");
-
+  const [isLoading, updateLoading] = useState(false);
+  const [inputType,setInputType]=useState("");
   const handleResponse = (response) => {
     setResponseText(response); // This will update the response text
   };
@@ -105,9 +107,19 @@ export default function BackgroundPaths({ title = "Background Paths" }) {
           transition={{ duration: 2 }}
           className="max-w-4xl mx-auto"
         >
-          <ChatInput onResponse={handleResponse} />{" "}
+          <ChatInput
+            onResponse={handleResponse}
+            updateLoading={updateLoading}
+            setInputType={setInputType}
+          />{" "}
           {/* Pass the handleResponse function */}
-          <ResponseDisplay response={responseText} />{" "}
+          <ResponseDisplay
+            response={responseText}
+            isLoading={isLoading}
+            setIsLoading={updateLoading}
+            inputType={inputType}
+            setInputType={setInputType}
+          />{" "}
           {/* Display the response */}
         </motion.div>
       </div>
