@@ -50,11 +50,16 @@ function FloatingPaths({ position = 4 }) {
   );
 }
 
-function ResponseDisplay({ response, isLoading, setIsLoading,inputType,setInputType,newReq }) {
-  // const [isLoading, setIsLoading] = useState(true);
-  // const newRequest=localStorage.getItem("newRequest");
+function ResponseDisplay({
+  response,
+  isLoading,
+  setIsLoading,
+  inputType,
+  setInputType,
+  newReq,
+}) {
   useEffect(() => {
-    if (response === "") return;
+    if (!response) return;
 
     let index = 0;
     const interval = setInterval(() => {
@@ -67,21 +72,30 @@ function ResponseDisplay({ response, isLoading, setIsLoading,inputType,setInputT
     }, 50); // Adjust the delay (in ms) to control the speed of text appearing
     return () => clearInterval(interval);
   }, [response]);
-   if(newReq)
-   {
-    return <Loader inputType={inputType} setInputType={setInputType}/>
-   }
-  if (isLoading && response === "")
-    { return <Loader inputType={""} setInputType={setInputType}/>;
-}
-  else if (response === ""||response===undefined) return;
+
+  if (newReq) {
+    return <Loader inputType={inputType} setInputType={setInputType} />;
+  }
+
+  if (isLoading && !response) {
+    return <Loader inputType={""} setInputType={setInputType} />;
+  }
+
+  if (!response) return null; // Avoid rendering empty content
+
   return (
     <div className="bg-white font-semibold text-black rounded-lg p-4 mt-4 w-full max-w-[82%] mx-auto overflow-auto max-h-[60vh]">
-      <ul>
-        {response.map((item, index) => (
-          <li key={index}>{item}</li>
-        ))}
-      </ul>
+      {Array.isArray(response) ? (
+        <ul>
+          {response.map((item, index) => (
+            <li key={index}>
+              <span className="text-3xl font-bold">.</span> {item}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>{response}</p> // Display string directly for audio transcription
+      )}
     </div>
   );
 }
@@ -89,8 +103,8 @@ function ResponseDisplay({ response, isLoading, setIsLoading,inputType,setInputT
 export default function BackgroundPaths({ title = "Background Paths" }) {
   const [responseText, setResponseText] = useState("");
   const [isLoading, updateLoading] = useState(false);
-  const [inputType,setInputType]=useState("");
-  const [newReq,setNewReStatus]=useState(false);
+  const [inputType, setInputType] = useState("");
+  const [newReq, setNewReStatus] = useState(false);
   const handleResponse = (response) => {
     setResponseText(response); // This will update the response text
   };
@@ -98,7 +112,7 @@ export default function BackgroundPaths({ title = "Background Paths" }) {
   const words = title.split(" ");
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center overflow-auto bg-white dark:bg-neutral-950">
+    <div className="relative min-h-screen w-full flex items-center justify-center overflow-auto bg-black dark:bg-neutral-950">
       <div className="absolute inset-0">
         <FloatingPaths position={1} />
         <FloatingPaths position={-1} />
@@ -116,7 +130,6 @@ export default function BackgroundPaths({ title = "Background Paths" }) {
             updateLoading={updateLoading}
             setInputType={setInputType}
             setNewReStatus={setNewReStatus}
-            
           />{" "}
           {/* Pass the handleResponse function */}
           <ResponseDisplay

@@ -1,49 +1,47 @@
 "use client";
 import { useState, useRef } from "react";
 import { Send, Mic, X } from "lucide-react";
-import { audioHandler } from "../services/transcriptHandler";
+import { audioHandler, textSummarizer } from "../services/transcriptHandler";
 
-export default function ChatInput({ onResponse, updateLoading,setInputType,setNewReStatus }) {
+export default function ChatInput({ onResponse, updateLoading, setInputType, setNewReStatus }) {
   const [prompt, setPrompt] = useState("");
   const [audioFile, setAudioFile] = useState(null);
-  // const [isLoading,updateLoading]=useState(false);
   const fileInputRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const handleSubmit = async () => {
-    let inputData = null;
-    let response = "";
-    if(prompt==="")
-      return ;
+    if (!prompt && !audioFile) return;
+    
     setNewReStatus(true);
-    const isGoogleDriveLink = prompt.startsWith("https://drive.google.com");
     updateLoading(true);
-    if (isGoogleDriveLink) {
-      
-      inputData = {
-        input_type: "audio",
-        input_data: prompt,
-      };
-      console.log(inputData);
-      setInputType(inputData.input_type);
-      setPrompt("");
-      const response = await audioHandler(inputData);
-      setNewReStatus(false);
-      console.log("audio block is hit")
-      onResponse(response);
+
+    let inputData = { input_type: "", input_data: prompt || "" };
+    let response = "";
+
+    if (audioFile) {
+      // Handle Audio File Upload
+      inputData.input_type = "audio";
+      setInputType("audio");
+      console.log("Uploading audio file:", audioFile.name);
+      response = await audioHandler(inputData, audioFile);
+    } else if (prompt.startsWith("https://drive.google.com")) {
+      // Handle Google Drive Link
+      inputData.input_type = "audio";
+      setInputType("audio");
+      console.log("Processing Google Drive link:", prompt);
+      response = await audioHandler(inputData);
     } else {
-      inputData = {
-        input_type: "text",
-        input_data: prompt,
-      };
-      console.log(inputData);
-      setInputType(inputData.input_type);
-      setPrompt("");
-      const response = await audioHandler(inputData);
-      setNewReStatus(false)
-      console.log("text block is hit")
-      onResponse(response);
+      // Handle Text Input
+      inputData.input_type = "text";
+      setInputType("text");
+      console.log("Processing text input:", prompt);
+      response = await textSummarizer(JSON.stringify(inputData.input_data));
     }
+
+    setNewReStatus(false);
+    setPrompt("");
+    setAudioFile(null);
+    onResponse(response);
   };
 
   const handleFileChange = (e) => {
@@ -72,10 +70,7 @@ export default function ChatInput({ onResponse, updateLoading,setInputType,setNe
   };
 
   return (
-    <div
-      className="w-full max-w-3xl bg-black-900/60 backdrop-blur-sm rounded-lg p-4 border border-black
-                 sm:ml-0 md:ml-14 mx-auto"
-    >
+    <div className="w-full max-w-3xl bg-black-900/60 backdrop-blur-sm rounded-lg p-4 border border-black sm:ml-0 md:ml-14 mx-auto">
       <div
         className={`relative ${isDragging ? "ring-2 ring-primary" : ""}`}
         onDragOver={handleDragOver}
@@ -85,10 +80,8 @@ export default function ChatInput({ onResponse, updateLoading,setInputType,setNe
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Type a message or drop an google drive link which has the audio file..."
-          className="w-full px-4 py-3 rounded-lg bg-white text-black placeholder-black
-                     focus:outline-none focus:ring-2 focus:ring-primary resize-none
-                     h-20 sm:h-24 pr-20 md:pr-24"
+          placeholder="Type a message, paste a Google Drive audio link, or upload an audio file..."
+          className="w-full px-4 py-3 rounded-lg bg-white text-black placeholder-black focus:outline-none focus:ring-2 focus:ring-primary resize-none h-20 sm:h-24 pr-20 md:pr-24"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -100,35 +93,20 @@ export default function ChatInput({ onResponse, updateLoading,setInputType,setNe
           {audioFile ? (
             <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-gray-700 text-gray-200 max-w-[120px] sm:max-w-[150px]">
               <span className="text-xs truncate">{audioFile.name}</span>
-              <button
-                onClick={() => setAudioFile(null)}
-                className="p-1 hover:bg-gray-600 rounded"
-              >
+              <button onClick={() => setAudioFile(null)} className="p-1 hover:bg-gray-600 rounded">
                 <X size={14} />
               </button>
             </div>
           ) : (
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="p-2 rounded-lg transition-colors"
-            >
+            <button onClick={() => fileInputRef.current?.click()} className="p-2 rounded-lg transition-colors">
               <Mic size={20} className="text-black-300" />
             </button>
           )}
-          <button
-            onClick={handleSubmit}
-            className="p-2 rounded-lg transition-colors"
-          >
+          <button onClick={handleSubmit} className="p-2 rounded-lg transition-colors">
             <Send size={20} className="text-black-300" />
           </button>
         </div>
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          accept="audio/*"
-          className="hidden"
-        />
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="audio/*" className="hidden" />
       </div>
     </div>
   );
