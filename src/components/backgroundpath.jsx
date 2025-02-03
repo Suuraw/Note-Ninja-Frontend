@@ -50,16 +50,14 @@ function FloatingPaths({ position = 4 }) {
   );
 }
 
-function ResponseDisplay({ response, isLoading, setIsLoading,inputType,setInputType }) {
-  const [displayedText, setDisplayedText] = useState("");
+function ResponseDisplay({ response, isLoading, setIsLoading,inputType,setInputType,newReq }) {
   // const [isLoading, setIsLoading] = useState(true);
-
+  // const newRequest=localStorage.getItem("newRequest");
   useEffect(() => {
     if (response === "") return;
 
     let index = 0;
     const interval = setInterval(() => {
-      setDisplayedText((prev) => prev + response[index]);
       index += 1;
 
       if (index === response.length) {
@@ -67,11 +65,16 @@ function ResponseDisplay({ response, isLoading, setIsLoading,inputType,setInputT
         setIsLoading(false);
       }
     }, 50); // Adjust the delay (in ms) to control the speed of text appearing
-    console.log(displayedText);
     return () => clearInterval(interval);
   }, [response]);
-  if (isLoading && response === "") return <Loader inputType={inputType} setInputType={setInputType}/>;
-  else if (response === "") return;
+   if(newReq)
+   {
+    return <Loader inputType={inputType} setInputType={setInputType}/>
+   }
+  if (isLoading && response === "")
+    { return <Loader inputType={""} setInputType={setInputType}/>;
+}
+  else if (response === ""||response===undefined) return;
   return (
     <div className="bg-white font-semibold text-black rounded-lg p-4 mt-4 w-full max-w-[82%] mx-auto overflow-auto max-h-[60vh]">
       <ul>
@@ -87,6 +90,7 @@ export default function BackgroundPaths({ title = "Background Paths" }) {
   const [responseText, setResponseText] = useState("");
   const [isLoading, updateLoading] = useState(false);
   const [inputType,setInputType]=useState("");
+  const [newReq,setNewReStatus]=useState(false);
   const handleResponse = (response) => {
     setResponseText(response); // This will update the response text
   };
@@ -111,6 +115,8 @@ export default function BackgroundPaths({ title = "Background Paths" }) {
             onResponse={handleResponse}
             updateLoading={updateLoading}
             setInputType={setInputType}
+            setNewReStatus={setNewReStatus}
+            
           />{" "}
           {/* Pass the handleResponse function */}
           <ResponseDisplay
@@ -119,6 +125,7 @@ export default function BackgroundPaths({ title = "Background Paths" }) {
             setIsLoading={updateLoading}
             inputType={inputType}
             setInputType={setInputType}
+            newReq={newReq}
           />{" "}
           {/* Display the response */}
         </motion.div>

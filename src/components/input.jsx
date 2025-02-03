@@ -3,7 +3,7 @@ import { useState, useRef } from "react";
 import { Send, Mic, X } from "lucide-react";
 import { audioHandler } from "../services/transcriptHandler";
 
-export default function ChatInput({ onResponse, updateLoading,setInputType }) {
+export default function ChatInput({ onResponse, updateLoading,setInputType,setNewReStatus }) {
   const [prompt, setPrompt] = useState("");
   const [audioFile, setAudioFile] = useState(null);
   // const [isLoading,updateLoading]=useState(false);
@@ -12,8 +12,10 @@ export default function ChatInput({ onResponse, updateLoading,setInputType }) {
 
   const handleSubmit = async () => {
     let inputData = null;
-    // let response = "";
-
+    let response = "";
+    if(prompt==="")
+      return ;
+    setNewReStatus(true);
     const isGoogleDriveLink = prompt.startsWith("https://drive.google.com");
     updateLoading(true);
     if (isGoogleDriveLink) {
@@ -26,6 +28,8 @@ export default function ChatInput({ onResponse, updateLoading,setInputType }) {
       setInputType(inputData.input_type);
       setPrompt("");
       const response = await audioHandler(inputData);
+      setNewReStatus(false);
+      console.log("audio block is hit")
       onResponse(response);
     } else {
       inputData = {
@@ -36,11 +40,10 @@ export default function ChatInput({ onResponse, updateLoading,setInputType }) {
       setInputType(inputData.input_type);
       setPrompt("");
       const response = await audioHandler(inputData);
-      console.log("response hit");
+      setNewReStatus(false)
+      console.log("text block is hit")
       onResponse(response);
     }
-    localStorage.setItem("inputType",inputData.input_type);
-    setAudioFile(null);
   };
 
   const handleFileChange = (e) => {
