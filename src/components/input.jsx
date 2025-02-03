@@ -80,7 +80,7 @@ export default function ChatInput({ onResponse, updateLoading, setInputType, set
         <textarea
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Type a message, paste a Google Drive audio link, or upload an audio file..."
+          placeholder="Type a text for summary, upload an audio file... for transcript"
           className="w-full px-4 py-3 rounded-lg bg-white text-black placeholder-black focus:outline-none focus:ring-2 focus:ring-primary resize-none h-20 sm:h-24 pr-20 md:pr-24"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
